@@ -1,3 +1,14 @@
+>>From the freenove github. This is my own personal modifications to the code
+
+
+Currently working on gamepad to server communication - Files linked: Server/joytocode
+
+
+
+
+
+Below is the original Readme from the page.
+
 ## Freenove Big Hexapod Robot Kit for Raspberry Pi
 
 > A Hexapod Robot Kit for Raspberry Pi.
