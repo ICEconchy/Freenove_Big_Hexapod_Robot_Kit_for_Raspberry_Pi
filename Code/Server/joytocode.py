@@ -61,6 +61,6 @@ for event in gamepad.read_loop():
                     print('lb')
             elif event.code == RB:
                 for i in range(3):
-                    data='CMD_POSITION#0#0#20'
+                    data=['CMD_POSITION', '0', '0', '20']
                     c.run(data)
                     print('rb')
