@@ -151,11 +151,12 @@ class Control:
             flag=False
         return flag
     def condition(self):
-        while True:
+     #   while True: Endless loop !
             if (time.time()-self.timeout)>10 and  self.timeout!=0 and self.order[0]=='':
                 self.timeout=time.time()
                 self.relax(True)
                 self.flag=0x00
+          #      print('Control Position check')
             if cmd.CMD_POSITION in self.order and len(self.order)==4:
                 if self.flag!=0x01:
                     self.relax(False)
@@ -164,7 +165,7 @@ class Control:
                 z=self.restriction(int(self.order[3]),-20,20)
                 self.posittion(x,y,z)
                 self.flag=0x01
-                self.order=['','','','','',''] 
+                self.order=['','','','','','']
             elif cmd.CMD_ATTITUDE in self.order and len(self.order)==4:
                 if self.flag!=0x02:
                     self.relax(False)
@@ -235,7 +236,8 @@ class Control:
                         self.setLegAngle()
                     elif self.order[1]=="save":
                         self.saveToTxt(self.calibration_leg_point,'point')
-                self.order=['','','','','',''] 
+                self.order=['','','','','','']
+                
     def relax(self,flag):
         if flag:
             self.servo.relax()
@@ -287,8 +289,12 @@ class Control:
             point[i][2]=-30-z
             self.height=point[i][2]
             self.body_point[i][2]=point[i][2]
+       #     print('goto Posittion Point',x,x,z)
         self.coordinateTransformation(point)
+     #   print('goto Posittion Point A')
         self.setLegAngle()
+    #    print('goto Posittion Point B')
+        
             
     def postureBalance(self,r, p, y):
         pos = np.mat([0.0, 0.0, self.height]).T
@@ -352,15 +358,17 @@ class Control:
             self.coordinateTransformation(point)
             self.setLegAngle()
  
-    def run(self,data,Z=40,F=64):#example : data=['CMD_MOVE', '1', '0', '25', '10', '0']
-        gait=data[1]
-        x=self.restriction(int(data[2]),-35,35)
-        y=self.restriction(int(data[3]),-35,35)
+    def run(self,order,Z=40,F=64):#example : data=['CMD_MOVE', '1', '0', '25', '10', '0']
+    #    print('Control Run check')
+    #    print('Order ',order[1],' ',order[2],' ',order[3],' ',order[4],' ',order[5])
+        gait=order[1]
+        x=self.restriction(int(order[2]),-35,35)
+        y=self.restriction(int(order[3]),-35,35)
         if gait=="1" :
-            F=round(self.map(int(data[4]),2,10,126,22))
+            F=round(self.map(int(order[4]),2,10,126,22))
         else:
-            F=round(self.map(int(data[4]),2,10,171,45))
-        angle=int(data[5])
+            F=round(self.map(int(order[4]),2,10,171,45))
+        angle=int(order[5])
         z=Z/F
         delay=0.01
         point=copy.deepcopy(self.body_point)

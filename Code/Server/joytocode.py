@@ -6,7 +6,7 @@ from evdev import InputDevice, categorize, ecodes
 
 #Creating object 'control' of 'Control' class.
 c=Control()
-
+c.order=['','','','','','']
 #example:
 #data=['CMD_MOVE', '1', '0', '25', '10', '0']
 #Move command:'CMD_MOVE'
@@ -27,40 +27,44 @@ yBtn = 308
 LB = 310
 RB = 311
 
+zpos = 10
 #prints out device info at start
 print(gamepad)
+c.order=['','','','','',''] #data to be sent to control
 
 #loop and filter by event code and print the mapped label
 for event in gamepad.read_loop():
     if event.type == ecodes.EV_KEY:
         if event.value == 1:
+            print('JoyPad check',event.code)
             if event.code == yBtn:
                 for i in range(3):
-                    data=['CMD_MOVE', '1', '0', '35', '10', '0']
-                    c.run(data)
-                    print('y')
+                    order=['CMD_MOVE', '1', '0', '35', '10', '0']
+                    c.condition()
+                    print('Y Button Pressed')
             elif event.code == bBtn:
                 for i in range(3):
-                    data=['CMD_MOVE', '1', '35', '0', '10', '0']
-                    c.run(data)
-                    print('b')
+                    order=['CMD_MOVE', '1', '35', '0', '10', '0']
+                    c.condition()
+                    print('B Button Pressed')
             elif event.code == aBtn:
                 for i in range(3):
-                    data=['CMD_MOVE', '1', '0', '-35', '10', '0']
-                    c.run(data)
-                    print('a')
+                    c.order=['CMD_MOVE', '1', '0', '-35', '10', '0']
+                    c.condition()
+                    print('A Button Pressed')
             elif event.code == xBtn:
                 for i in range(3):
-                    data=['CMD_MOVE', '1', '-35', '0', '10', '0']
-                    c.run(data)
-                    print('x')
+                    c.order=['CMD_MOVE', '1', '-35', '0', '10', '0']
+                    c.condition()
+                    print('X Button Pressed')
             elif event.code == LB:
-                for i in range(3):
-                    data=['CMD_POSITION', '0', '0', '-2']
-                    c.run(data)
-                    print('lb')
+                for i in range(1):
+                    c.order=['CMD_POSITION','0','0','-10']
+                    c.condition()
+                    print('LB Button Pressed')
             elif event.code == RB:
-                for i in range(3):
-                    data=['CMD_POSITION', '0', '0', '20']
-                    c.run(data)
-                    print('rb')
+               # for i in range(1):
+                 #   zpos = zpos +1
+                    c.order=['CMD_POSITION','0','0','11']
+                    c.condition()
+                    print('RB Button Pressed')
