@@ -7,6 +7,7 @@ from IMU import *
 from PID import *
 import threading
 from Servo import*
+from Buzzer import Buzzer as buz
 import numpy as np
 import RPi.GPIO as GPIO
 from Command import COMMAND as cmd
@@ -157,6 +158,10 @@ class Control:
                 self.relax(True)
                 self.flag=0x00
           #      print('Control Position check')
+            if cmd.CMD_BUZZER in self.order and len(self.order)==2:
+                b=self.order[1]
+                buz.run(self,b)
+                print('BUZZER')
             if cmd.CMD_POSITION in self.order and len(self.order)==4:
                 if self.flag!=0x01:
                     self.relax(False)
