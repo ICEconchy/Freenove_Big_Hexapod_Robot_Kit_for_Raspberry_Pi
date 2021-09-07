@@ -26,7 +26,8 @@ RB = 311
 SelBtn = 314 # gamepad select button
 StBtn = 315 # gamepad start button
 PowBtn = 316 # gamepad power button
-
+LangBtn = 317
+RangBtn = 318
 # Left Buttons
 # f,r,l,r btn rel code 17, type 03, val 00
 # fwd btn code 17, type 03, val -1
@@ -60,14 +61,31 @@ PowBtn = 316 # gamepad power button
 # Full press code 05, type 03, val 255
 # off code 05, type 03, val 00
 
-CENTER_TOLERANCE = 350
+xpos = 67 # initial position
+ypos = 67 # initial position
+maxypos = 179
+minypos = 1
+maxxpos = 155
+minxpos = 53
 zpos = 0 # initial position
+val = 0 # inital value
+
+
+    
 #prints out device info at start
 print(gamepad)
 c.order=['','','','','',''] #data to be sent to control
 
+def setuppositions():
+    print('Set up inital position')
+    c.order=['CMD_HEAD',xpos,ypos]
+    c.order=['CMD_POSITION','0','0', zpos]
+    c.condition()
+
 def map(self,value,fromLow,fromHigh,toLow,toHigh):
         return (toHigh-toLow)*(value-fromLow) / (fromHigh-fromLow) + toLow
+
+setuppositions()
 
 #loop and filter by event code and print the mapped label
 for event in gamepad.read_loop():
@@ -97,9 +115,9 @@ for event in gamepad.read_loop():
             elif event.code == PowBtn:
                 c.order=['CMD_BUZZER', '1']
                 c.condition()
-                time.sleep(2)
-                c.order=['CMD_BUZZER', '1']
-                c.condition
+                time.sleep(1)
+                c.order=['CMD_BUZZER', '0']
+                c.condition()
             elif event.code == LB:
                 if zpos < -19:
                     zpos = -20
@@ -123,18 +141,33 @@ for event in gamepad.read_loop():
     if event.type == ecodes.EV_ABS: 
         absevent = categorize(event)
         print('I got here ',event)
-        if ecodes.bytype[absevent.event.type][absevent.event.code] == 'ABS_RZ':
-           translation = {97: None, 98: None, 99: 105}
-           if absevent.event.value > 128: 
-                print ('reverse') 
-                print (absevent.event.value) 
-           elif absevent.event.value < 127:
-                print ('forward') 
-                print (absevent.event.value) 
-        if ecodes.bytype[absevent.event.type][absevent.event.code] == 'ABS_Z':
-            if absevent.event.value > 128 : 
-                print ('right') 
-                print (absevent.event.value) 
-            elif absevent.event.value < 127: 
-                print ('left') 
-                print (absevent.event.value)
+        if absevent.event.code == 17 and absevent.event.value == -1 and xpos < maxxpos:
+            print('val = ',val)
+            print('event code 17 Up')
+            xpos = xpos +2 
+            c.order=['CMD_HEAD',xpos,ypos]
+            print(xpos,ypos)
+            c.condition()
+            
+        elif absevent.event.code == 17 and absevent.event.value == 1:
+            print('event code 17 Down')
+            xpos = xpos -2 
+            c.order=['CMD_HEAD',xpos,ypos]
+            print(xpos,ypos)
+            c.condition()
+        
+        elif absevent.event.code == 16 and absevent.event.value == -1:
+            print('val = ',val)
+            print('event code 16 Left')
+            ypos = ypos +2 
+            c.order=['CMD_HEAD',xpos,ypos]
+            print(xpos,ypos)
+            c.condition()
+            
+        elif absevent.event.code == 16 and absevent.event.value == 1:
+            print('event code 16 Right')
+            ypos = ypos -2 
+            c.order=['CMD_HEAD',xpos,ypos]
+            print(xpos,ypos)
+            c.condition()
+            

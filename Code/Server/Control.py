@@ -7,9 +7,9 @@ from IMU import *
 from PID import *
 import threading
 from Servo import*
-from Buzzer import Buzzer as buz
 import numpy as np
 import RPi.GPIO as GPIO
+from Buzzer import *
 from Command import COMMAND as cmd
 class Control:
     def __init__(self):
@@ -20,6 +20,7 @@ class Control:
         GPIO.output(self.GPIO_4,False)
         self.imu=IMU()
         self.servo=Servo()
+        self.buzzer=Buzzer()
         self.move_flag=0x01
         self.relax_flag=False
         self.pid = Incremental_PID(0.500,0.00,0.0025)
@@ -58,6 +59,7 @@ class Control:
             file2.write('\n')
         file2.close()
         
+       
     def coordinateToAngle(self,ox,oy,oz,l1=33,l2=90,l3=110):
         a=math.pi/2-math.atan2(oz,oy)
         x_3=0
@@ -159,18 +161,25 @@ class Control:
                 self.flag=0x00
           #      print('Control Position check')
             if cmd.CMD_BUZZER in self.order and len(self.order)==2:
-                b=self.order[1]
-                buz.run(self,b)
-                print('BUZZER')
+               self.buzzer.run(self.order[1])
+               
+            if cmd.CMD_HEAD in self.order and len(self.order)==3:
+               print('goto to control head')
+               x=self.restriction(int(self.order[1]),53,155)
+               y=self.restriction(int(self.order[2]),0,120)
+               self.setcamerahead(x,y)
+               self.order=['','','','','','']
+               
             if cmd.CMD_POSITION in self.order and len(self.order)==4:
                 if self.flag!=0x01:
                     self.relax(False)
                 x=self.restriction(int(self.order[1]),-40,40)
                 y=self.restriction(int(self.order[2]),-40,40)
                 z=self.restriction(int(self.order[3]),-20,20)
-                self.posittion(x,y,z)
+                self.setposition(x,y,z)
                 self.flag=0x01
                 self.order=['','','','','','']
+                
             elif cmd.CMD_ATTITUDE in self.order and len(self.order)==4:
                 if self.flag!=0x02:
                     self.relax(False)
@@ -181,7 +190,8 @@ class Control:
                 self.coordinateTransformation(point)
                 self.setLegAngle()
                 self.flag=0x02
-                self.order=['','','','','',''] 
+                self.order=['','','','','','']
+                
             elif cmd.CMD_MOVE in self.order and len(self.order)==6:
                 if self.order[2] =="0" and self.order[3] =="0":
                     self.run(self.order)
@@ -191,6 +201,7 @@ class Control:
                         self.relax(False)
                     self.run(self.order)
                     self.flag=0x03
+                    
             elif cmd.CMD_BALANCE in self.order and len(self.order)==2:
                 if self.order[1] =="1":
                     self.order=['','','','','',''] 
@@ -198,6 +209,7 @@ class Control:
                         self.relax(False)
                     self.flag=0x04
                     self.imu6050()
+                    
             elif cmd.CMD_CALIBRATION in self.order:
                 self.timeout=0
                 self.calibration()
@@ -286,7 +298,11 @@ class Control:
     def map(self,value,fromLow,fromHigh,toLow,toHigh):
         return (toHigh-toLow)*(value-fromLow) / (fromHigh-fromLow) + toLow
     
-    def posittion(self,x,y,z):
+    def setcamerahead(self,x,y):
+        self.servo.setServoAngle(0,x)
+        self.servo.setServoAngle(1,y)
+    
+    def setposition(self,x,y,z):
         point=copy.deepcopy(self.body_point)
         for i in range(6):
             point[i][0]=self.body_point[i][0]-x
@@ -294,12 +310,8 @@ class Control:
             point[i][2]=-30-z
             self.height=point[i][2]
             self.body_point[i][2]=point[i][2]
-       #     print('goto Posittion Point',x,x,z)
         self.coordinateTransformation(point)
-     #   print('goto Posittion Point A')
         self.setLegAngle()
-    #    print('goto Posittion Point B')
-        
             
     def postureBalance(self,r, p, y):
         pos = np.mat([0.0, 0.0, self.height]).T
