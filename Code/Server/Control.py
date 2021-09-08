@@ -159,23 +159,24 @@ class Control:
                 self.timeout=time.time()
                 self.relax(True)
                 self.flag=0x00
-          #      print('Control Position check')
-            if cmd.CMD_BUZZER in self.order and len(self.order)==2:
-               self.buzzer.run(self.order[1])
+                print('Control Position check')
+            elif cmd.CMD_BUZZER in self.order and len(self.order)==2:
+                print('Got to Buzzerr control')
+                self.buzzer.run(self.order[1])
                
-            if cmd.CMD_HEAD in self.order and len(self.order)==3:
+            elif cmd.CMD_HEAD in self.order and len(self.order)==3:
                print('goto to control head')
                x=self.restriction(int(self.order[1]),53,155)
                y=self.restriction(int(self.order[2]),0,120)
                self.setcamerahead(x,y)
                self.order=['','','','','','']
                
-            if cmd.CMD_POSITION in self.order and len(self.order)==4:
+            elif cmd.CMD_POSITION in self.order and len(self.order)==4:
                 if self.flag!=0x01:
                     self.relax(False)
                 x=self.restriction(int(self.order[1]),-40,40)
                 y=self.restriction(int(self.order[2]),-40,40)
-                z=self.restriction(int(self.order[3]),-20,20)
+                z=self.restriction(int(self.order[3]),-20,50)
                 self.setposition(x,y,z)
                 self.flag=0x01
                 self.order=['','','','','','']
@@ -198,7 +199,7 @@ class Control:
                     self.order=['','','','','',''] 
                 else:
                     if self.flag!=0x03:
-                        self.relax(False)
+                     self.relax(False)
                     self.run(self.order)
                     self.flag=0x03
                     
