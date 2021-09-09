@@ -11,12 +11,12 @@ c.order=['','','','','','']
 #data=['CMD_MOVE', '1', '0', '25', '10', '0']
 #Move command:'CMD_MOVE'
 #Gait Mode: "1"
-#Moving direction: x='0',y='25'
+#Moving direction: x='0',y='25' val = speed
 #Delay:'10'
 #Action Mode : '0'   Angleless turn 
 
 gamepad = InputDevice('/dev/input/event0') #creates object 'gamepad' to store the data
-LeftJoy = ["", "", "", ""]
+LeftJoy = [ 0,0,0,0]
 
 #button codes
 aBtn = 304
@@ -69,10 +69,22 @@ headmaxypos = 179
 headminypos = 1
 headmaxxpos = 155
 headminxpos = 53
+joymaxypos = 0
+joyminypos = 0
+joymaxxpos = 0
+joyminxpos = 0
+anglemaxypos = 0
+angleminypos = 0
+anglemaxxpos = 0
+angleminxpos = 0
+
 zpos = 20 # initial position
 val = 0 # inital value
-ABS_RZ = 0 # inital Lanalog
-ABS_Z = 0
+ABS_LX = 0 # inital Lanalog
+ABS_LY = 0
+ABS_RX = 0
+ABS_RY = 0
+Joycontrolangle = 0
 
     
 #prints out device info at start
@@ -85,9 +97,15 @@ def setuppositions():
     c.order=['CMD_POSITION','0','0', zpos]
     c.condition()
 
-def map(self,value,fromLow,fromHigh,toLow,toHigh):
-        return (toHigh-toLow)*(value-fromLow) / (fromHigh-fromLow) + toLow
-
+def setanglepositions():
+            joyradians = math.atan2(LeftJoy[0],LeftJoy[1]) # calc angle
+            # need to neg numbers
+            joydegrees = math.degrees(joyradians)
+            joyangle = math.floor(joydegrees) # calc degree
+            F=round(c.map(joyangle,-180,180,0,20))
+            Joycontrolangle = abs(F)
+            print('Degree angle = ',Joycontrolangle)
+            
 setuppositions()
 
 #loop and filter by event code and print the mapped label
@@ -159,7 +177,7 @@ for event in gamepad.read_loop():
 #for event in gamepad.read_loop():
     if event.type == ecodes.EV_ABS: 
         absevent = categorize(event)
-        print('I got here ',event)
+      #  print('I got here ',event)
         if absevent.event.code == 17 and absevent.event.value == -1 and headxpos < headmaxxpos:
             print('val = ',val)
             print('event code 17 Up')
@@ -189,22 +207,22 @@ for event in gamepad.read_loop():
             c.order=['CMD_HEAD',headxpos,headypos]
             print(headxpos,headypos)
             c.condition()           
-            
-        elif absevent.event.code == 1 and absevent.event.value < ABS_RZ:
+    
+        elif absevent.event.code == 1:
             LeftJoy[0] = absevent.event.value
-            print("ABS_RZ", absevent.event.value)
-        if ecodes.bytype[absevent.event.type][absevent.event.code] == ABS_Z: 
+            print("ABS_LX", LeftJoy[0])
+            setanglepositions()
+            jx = round(c.map(LeftJoy[0],-32800,32800,35,-35))
+            print('jx = ',jx)
+            c.order=['CMD_MOVE', '1', jx, '0', '10',Joycontrolangle]
+            c.condition()
+        
+        if absevent.event.code == 0: 
             LeftJoy[1] = absevent.event.value
-            print("ABS_Z", absevent.event.value)
-            if last["ABS_RZ"] > 128: 
-                print('reverse')
-                print (last["ABS_RZ"]) 
-            elif last["ABS_RZ"] < 127: 
-                print ('forward') 
-                print (last["ABS_RZ"]) 
-            if last["ABS_Z"] > 128 : 
-                print ('right')
-                print (last["ABS_Z"])
-            elif last["ABS_Z"] < 127: 
-                print ('left')
-                print (last["ABS_Z"])
+            print("ABS_LY", LeftJoy[1])
+            setanglepositions()
+            jy = round(c.map(LeftJoy[1],-32800,32800,35,-35))
+            print('jy = ',jy)
+            c.order=['CMD_MOVE', '1', '0', jy, '10',Joycontrolangle]
+            c.condition()
+           
