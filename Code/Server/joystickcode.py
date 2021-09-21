@@ -13,7 +13,7 @@ c.order=['','','','','','']
 #Gait Mode: "1"
 #Moving direction: x='0',y='25' val = speed
 #Delay:'10'
-#Action Mode : '0'   Angleless turn 
+#Action Mode 1 No Angle eg left or right if set to 2 then angle 
 
 gamepad = InputDevice('/dev/input/event0') #creates object 'gamepad' to store the data
 LeftJoy = [ 0,0,0,0]
@@ -80,12 +80,13 @@ angleminxpos = 0
 
 zpos = 20 # initial position
 val = 0 # inital value
-ABS_LX = 0 # inital Lanalog
-ABS_LY = 0
+ljx = 0 # inital Lanalog
+ljy = 0
+angle = 0
+fixedangle_flag = 0
 ABS_RX = 0
 ABS_RY = 0
 Joycontrolangle = 0
-
     
 #prints out device info at start
 print(gamepad)
@@ -98,13 +99,27 @@ def setuppositions():
     c.condition()
 
 def setanglepositions():
-            joyradians = math.atan2(LeftJoy[0],LeftJoy[1]) # calc angle
-            # need to neg numbers
-            joydegrees = math.degrees(joyradians)
-            joyangle = math.floor(joydegrees) # calc degree
-            F=round(c.map(joyangle,-180,180,0,20))
-            Joycontrolangle = abs(F)
-            print('Degree angle = ',Joycontrolangle)
+    if fixedangle_flag == 1:
+        angle = 0
+    else:
+        if ljx!=0 or ljy!=0:
+            print('ljx =',ljx, 'ljy =',ljy)
+            angle = math.degrees(math.atan2(ljx,ljy)) # calc angle
+            print('Angle atan ',angle)
+            if angle < -90 and angle >= -180:
+                angle=angle+360
+                print('Angle neg ',angle)
+            if angle >= -90 and angle <=90:
+                print('Angle pos ',angle)
+                angle = c.map(angle,-90,90,-10,10)
+                angle = round(angle) # round up angle
+            else:
+                angle = c.map(angle, 270, 90, 10, -10)
+                angle = round(angle) # round up angle
+                print('Degree angle = ',angle)
+        else:
+            angle = 0
+            print('Degree angle = ',angle)
             
 setuppositions()
 
@@ -209,20 +224,20 @@ for event in gamepad.read_loop():
             c.condition()           
     
         elif absevent.event.code == 1:
-            LeftJoy[0] = absevent.event.value
+            LeftJoy[0] = absevent.event.value / 100
             print("ABS_LX", LeftJoy[0])
+            ljx = round(c.map(LeftJoy[0],-328,328,35,-35))
             setanglepositions()
-            jx = round(c.map(LeftJoy[0],-32800,32800,35,-35))
-            print('jx = ',jx)
-            c.order=['CMD_MOVE', '1', jx, '0', '10',Joycontrolangle]
+            print('ljx = ',ljx)
+            c.order=['CMD_MOVE', '1', ljx, '0', '10',angle]
             c.condition()
         
         if absevent.event.code == 0: 
-            LeftJoy[1] = absevent.event.value
+            LeftJoy[1] = absevent.event.value / 100
             print("ABS_LY", LeftJoy[1])
+            ljy = round(c.map(LeftJoy[1],-328,328,35,-35))
             setanglepositions()
-            jy = round(c.map(LeftJoy[1],-32800,32800,35,-35))
-            print('jy = ',jy)
-            c.order=['CMD_MOVE', '1', '0', jy, '10',Joycontrolangle]
+            print('ljy = ',ljy)
+            c.order=['CMD_MOVE', '1', '0', ljy, '10',angle]
             c.condition()
            
